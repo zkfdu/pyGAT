@@ -22,8 +22,8 @@ parser.add_argument('--no-cuda', action='store_true', default=False, help='Disab
 parser.add_argument('--fastmode', action='store_true', default=False, help='Validate during training pass.')
 parser.add_argument('--sparse', action='store_true', default=False, help='GAT with sparse version or not.')
 parser.add_argument('--seed', type=int, default=72, help='Random seed.')
-parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=0.05, help='Initial learning rate.')#原文是0.005
+parser.add_argument('--epochs', type=int, default=10, help='Number of epochs to train.')
+parser.add_argument('--lr', type=float, default=0.005, help='Initial learning rate.')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay (L2 loss on parameters).')
 parser.add_argument('--hidden', type=int, default=8, help='Number of hidden units.')
 parser.add_argument('--nb_heads', type=int, default=8, help='Number of head attentions.')
@@ -99,7 +99,7 @@ def train(epoch):
           'acc_val: {:.4f}'.format(acc_val.data.item()),
           'time: {:.4f}s'.format(time.time() - t))
 
-    return loss_train.data.item(),loss_val.data.item()
+    return loss_val.data.item()
 
 
 def compute_test():
@@ -114,18 +114,15 @@ def compute_test():
 # Train model
 t_total = time.time()
 loss_values = []
-trainloss_GAT_cora,valloss_GAT_cora=[],[]
 bad_counter = 0
 best = args.epochs + 1
 best_epoch = 0
 for epoch in range(args.epochs):
-    trainloss,valloss=train(epoch)
-    # loss_values.append(train(epoch))
-    trainloss_GAT_cora.append(trainloss)
-    valloss_GAT_cora.append(valloss)
+    loss_values.append(train(epoch))
+
     torch.save(model.state_dict(), '{}.pkl'.format(epoch))
-    if valloss < best:
-        best = valloss
+    if loss_values[-1] < best:
+        best = loss_values[-1]
         best_epoch = epoch
         bad_counter = 0
     else:
@@ -155,23 +152,3 @@ model.load_state_dict(torch.load('{}.pkl'.format(best_epoch)))
 
 # Testing
 compute_test()
-
-
-'''
-
-from matplotlib import pyplot as plt 
-%matplotlib inline
-f, ax = plt.subplots(1,1, squeeze=False)
-
-ax[0][0].plot(trainloss_GAT_cora,label="trainloss_GAT_cora")
-ax[0][0].legend(loc=0, ncol=1) 
-ax[0][0].plot(valloss_GAT_cora,label="valloss_GAT_cora")
-ax[0][0].legend(loc=0, ncol=1) 
-# ax[0][0].plot(losslist_pubmed_geniepath,label="losslist_pubmed_geniepath")
-# ax[0][0].legend(loc=0, ncol=1) 
-# ax[0][1].plot(testacclist_pubmed_geniepath,label="testacclist_pubmed_geniepath")
-# ax[0][1].legend(loc=0, ncol=1) 
-plt.savefig("GAT_100epoch")
-plt.show()
-
-'''
