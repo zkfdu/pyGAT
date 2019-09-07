@@ -14,7 +14,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 from utils import load_data, accuracy
-from models import SGAT,GAT, SpGAT
+from models import GAT, SpGAT
 
 # Training settings
 parser = argparse.ArgumentParser()
@@ -99,8 +99,8 @@ def train(epoch):
           'acc_val: {:.4f}'.format(acc_val.data.item()),
           'time: {:.4f}s'.format(time.time() - t))
 
-    return loss_train.data.item(),loss_val.data.item()
-
+    # return loss_train.data.item(),loss_val.data.item()
+    return loss_train.data.item(),loss_val.data.item(),acc_train.data.item(),acc_val.data.item()
 
 def compute_test():
     model.eval()
@@ -115,6 +115,8 @@ def compute_test():
 t_total = time.time()
 loss_values = []
 trainloss_GAT_cora,valloss_GAT_cora=[],[]
+trainacc_GAT_cora,valacc_GAT_cora=[],[]
+
 bad_counter = 0
 best = args.epochs + 1
 best_epoch = 0
@@ -123,6 +125,8 @@ for epoch in range(args.epochs):
     # loss_values.append(train(epoch))
     trainloss_GAT_cora.append(trainloss)
     valloss_GAT_cora.append(valloss)
+    trainacc_GAT_cora.append(trainacc)
+    valacc_GAT_cora.append(valacc)
     torch.save(model.state_dict(), '{}.pkl'.format(epoch))
     if valloss < best:
         best = valloss

@@ -25,8 +25,8 @@ class GAT(nn.Module):
 
 class SGAT(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads):
-        """Dense version of GAT."""
-        super(GAT, self).__init__()
+        """Dense version of SGAT."""
+        super(SGAT, self).__init__()
         self.dropout = dropout
 
         self.attentions = [GraphAttentionLayer(nfeat, nhid, dropout=dropout, alpha=alpha, concat=True) for _ in range(nheads)]
@@ -39,7 +39,7 @@ class SGAT(nn.Module):
         x = F.dropout(x, self.dropout, training=self.training)
         x = torch.cat([att(x, adj) for att in self.attentions], dim=1)
         x = F.dropout(x, self.dropout, training=self.training)
-        x = F.elu(self.out_att(x, adj))
+        x = (self.out_att(x, adj))
         return F.log_softmax(x, dim=1)
 
 
